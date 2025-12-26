@@ -1,0 +1,116 @@
+<!doctype html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Pixi 空间扭曲 Demo</title>
+    <style>
+      html, body {
+        margin: 0;
+        padding: 0;
+        overflow: hidden;
+        background: #000;
+        width: 100%;
+        height: 100%;
+      }
+      #scene {
+        display: block;
+        width: 100vw;
+        height: 100vh;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 让 Pixi 画在这个 canvas 上 -->
+    <canvas id="scene"></canvas>
+
+    <script type="module">
+      import {
+        Application,
+        Assets,
+        Sprite,
+        DisplacementFilter,
+        WRAP_MODES,
+      } from "https://cdn.jsdelivr.net/npm/pixi.js@8.x/dist/pixi.mjs";
+
+      // 1. 初始化应用
+      const canvas = document.getElementById("scene");
+      const app = new Application();
+
+      await app.init({
+        canvas,
+        resizeTo: window,          // 自动撑满全屏
+        backgroundColor: 0x000000,
+        antialias: true,
+      });
+
+      // 2. 加载资源（换成你自己的背景图路径）
+      const bgTexture = await Assets.load("index_bg.webp");
+      // 可以用公网噪声图，也可以换成本地 noise.png
+      const noiseTexture = await Assets.load(
+        "1678-bump.jpg"
+      );
+
+      // 3. 背景精灵
+      const bg = new Sprite(bgTexture);
+      bg.anchor.set(0.5);
+      app.stage.addChild(bg);
+
+      // 根据窗口等比铺满
+      function resizeBg() {
+        const { width, height } = app.screen;
+        bg.position.set(width / 2, height / 2);
+
+        const scale = Math.max(
+          width / bgTexture.width,
+          height / bgTexture.height
+        );
+        bg.scale.set(scale);
+      }
+      resizeBg();
+
+      // 4. 位移贴图精灵（用来扭曲背景）
+      const dispSprite = new Sprite(noiseTexture);
+      dispSprite.texture.baseTexture.wrapMode = WRAP_MODES.REPEAT;
+      dispSprite.anchor.set(0.5);
+      dispSprite.position.set(app.screen.width / 2, app.screen.height / 2);
+
+      // 尺寸覆盖整个屏幕，保证能完全“扭曲到”
+      const dispScale = Math.max(
+        app.screen.width / noiseTexture.width,
+        app.screen.height / noiseTexture.height
+      );
+      dispSprite.scale.set(dispScale);
+
+      // 这个精灵不用显示出来，只做“位移场”
+      dispSprite.alpha = 0;
+      app.stage.addChild(dispSprite);
+
+      // 5. 创建 DisplacementFilter（核心：空间扭曲）
+      const displacementFilter = new DisplacementFilter(dispSprite);
+      // 扭曲强度，数值越大，变形越明显（自己可以慢慢调）
+      displacementFilter.scale.set(25, 35);
+
+      // 给背景套上滤镜
+      bg.filters = [displacementFilter];
+
+      // 6. 动画：让位移贴图缓慢移动，形成柔和空间流动
+      app.ticker.add((delta) => {
+        // delta 是帧步长，这里做一个很慢的流动感
+        dispSprite.x += 0.2 * delta;
+        dispSprite.y += 0.15 * delta;
+      });
+
+      // 7. 窗口变化时自适应
+      window.addEventListener("resize", () => {
+        resizeBg();
+        // 重算一下位移贴图的 scale，保证覆盖全屏
+        const newScale = Math.max(
+          app.screen.width / noiseTexture.width,
+          app.screen.height / noiseTexture.height
+        );
+        dispSprite.position.set(app.screen.width / 2, app.screen.height / 2);
+        dispSprite.scale.set(newScale);
+      });
+    </script>
+  </body>
+</html>

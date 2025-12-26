@@ -1,0 +1,158 @@
+.homePage {
+  width: 100vw;
+  height: 100vh;
+  position: relative;
+  overflow: hidden;
+}
+
+/* 内容容器 - 1920x1080 设计尺寸，JavaScript 动态缩放 */
+.contentWrapper {
+  width: 1920px;
+  height: 1080px;
+  position: absolute;
+  left: 0;
+  top: 0;
+  transform-origin: left top;
+  /* transform 由 JavaScript 动态设置 */
+}
+
+/* 左侧：Logo */
+.leftSection {
+  position: absolute;
+  left: 156px;
+  top: 330px;
+  width: 557px;
+  height: 557px;
+  z-index: var(--z-card);
+}
+
+.logo {
+  width: 557px;
+  height: auto;
+  display: block;
+  /* 初始隐藏状态，由 GSAP 动画控制显示 */
+  opacity: 0;
+  transform: translateY(30px) scale(0.85);
+  filter: blur(8px);
+}
+
+/* 右侧：标题和文字 */
+.rightSection {
+  position: absolute;
+  left: 1155px;
+  top: 198px;
+  width: 606px;
+  z-index: var(--z-card);
+}
+
+.titleImage {
+  width: 529px;
+  height: auto;
+  display: block;
+  margin-bottom: 45px;
+  /* 初始隐藏状态，由 GSAP 动画控制显示 */
+  opacity: 0;
+  transform: translateY(30px);
+  filter: blur(8px);
+}
+
+.description {
+  color: white;
+  font-size: 16px;
+  font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  font-weight: 400;
+  line-height: 25px;
+  margin-bottom: 16px;
+  /* 初始隐藏状态，由 GSAP 动画控制显示 */
+  opacity: 0;
+  transform: translateY(30px);
+  filter: blur(8px);
+}
+
+.subtitle {
+  color: white;
+  font-size: 16px;
+  font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  font-weight: 400;
+  line-height: 25px;
+  margin-bottom: 47px;
+  /* 初始隐藏状态，由 GSAP 动画控制显示 */
+  opacity: 0;
+  transform: translateY(30px);
+  filter: blur(8px);
+}
+
+.highlight {
+  color: #FF71AC;
+  font-size: 23px;
+  font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  font-weight: 400;
+  line-height: 36px;
+  margin-bottom: 60px;
+  /* 初始隐藏状态，由 GSAP 动画控制显示 */
+  opacity: 0;
+  transform: translateY(30px);
+  filter: blur(8px);
+}
+
+.startButton {
+  width: 338px;
+  height: 66px;
+  background: rgba(255, 113, 172, 0.60);
+  border-radius: 33px;
+  border: 1px solid #FF0079;
+  color: white;
+  font-size: 23px;
+  font-family: 'Microsoft YaHei', 'PingFang SC', sans-serif;
+  font-weight: 400;
+  line-height: 36px;
+  cursor: pointer;
+  transition: all var(--duration-base) var(--ease-out);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* 初始隐藏状态，由 GSAP 动画控制显示 */
+  opacity: 0;
+  transform: translateY(30px);
+  filter: blur(8px);
+}
+
+.startButton:hover {
+  background: rgba(255, 113, 172, 0.80);
+  border-color: #FF0079;
+  transform: translateY(-4px) scale(1.05);
+  box-shadow: 0 8px 24px rgba(255, 113, 172, 0.4);
+}
+
+.startButton:active {
+  transform: translateY(-2px) scale(1.02);
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes slideUp {
+  from {
+    transform: translateY(20px);
+    opacity: 0;
+  }
+  to {
+    transform: translateY(0);
+    opacity: 1;
+  }
+}
+
+@keyframes pulse {
+  0%, 100% {
+    opacity: 1;
+  }
+  50% {
+    opacity: 0.5;
+  }
+}

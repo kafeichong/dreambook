@@ -1,0 +1,276 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>Soft Dust Particles - Tail + Twinkle</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; overflow: hidden; }
+
+    body {
+      background: url("./index_bg.webp") center center / cover no-repeat fixed;
+      position: relative;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    canvas#webgl {
+      position: fixed;
+      inset: 0;
+      pointer-events: none;
+      z-index: 1;
+    }
+  </style>
+</head>
+<body>
+  <canvas id="webgl"></canvas>
+
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+
+    // ================= 基础 three.js 场景 =================
+    const canvas   = document.getElementById("webgl");
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true
+    });
+    renderer.setClearColor(0x000000, 0);
+
+    const scene  = new THREE.Scene();
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth / window.innerHeight,
+      1,
+      2000
+    );
+    camera.position.z = 700;
+
+    function onResize() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    }
+    window.addEventListener("resize", onResize);
+    onResize();
+
+    // ================= Shader（小高斯光点 + 轻微闪烁） =================
+    const vertexShader = `
+      attribute float size;
+      attribute float alpha;
+      attribute float phase;
+      varying float vAlpha;
+      varying float vPhase;
+
+      void main() {
+        vAlpha = alpha;
+        vPhase = phase;
+
+        vec4 mvPosition = modelViewMatrix * vec4(position, 1.0);
+        gl_PointSize = size * (300.0 / -mvPosition.z);
+        gl_Position = projectionMatrix * mvPosition;
+      }
+    `;
+
+    const fragmentShader = `
+      uniform vec3  uColor;
+      uniform float uTime;
+
+      varying float vAlpha;
+      varying float vPhase;
+
+      void main() {
+        vec2 pc = gl_PointCoord - vec2(0.5);
+        float r = length(pc);
+
+        float glow = exp(-12.0 * r * r);
+
+        // 轻微闪烁：0.7 ~ 1.0 之间缓慢变化
+        float twinkle = 0.7 + 0.3 * sin(uTime * 0.6 + vPhase);
+
+        float finalAlpha = glow * vAlpha * twinkle;
+
+        if (finalAlpha < 0.01) discard;
+
+        gl_FragColor = vec4(uColor, finalAlpha);
+      }
+    `;
+
+    // ================= 工具：创建一层粒子 =================
+    function createParticleLayer({
+      count,
+      areaXY,
+      areaZ,
+      sizeMin,
+      sizeMax,
+      alphaMin,
+      alphaMax,
+      color,
+      speedMin,
+      speedMax,
+      ampMin,
+      ampMax
+    }) {
+      const positions     = new Float32Array(count * 3);
+      const basePositions = new Float32Array(count * 3);
+      const sizes         = new Float32Array(count);
+      const alphas        = new Float32Array(count);
+      const speeds        = new Float32Array(count);
+      const amps          = new Float32Array(count);
+      const phases        = new Float32Array(count); // 既给位移用，也给闪烁用
+
+      for (let i = 0; i < count; i++) {
+        const i3 = i * 3;
+
+        const x = (Math.random() - 0.5) * areaXY;
+        const y = (Math.random() - 0.5) * areaXY;
+        const z = (Math.random() - 0.5) * areaZ;
+
+        positions[i3 + 0] = basePositions[i3 + 0] = x;
+        positions[i3 + 1] = basePositions[i3 + 1] = y;
+        positions[i3 + 2] = basePositions[i3 + 2] = z;
+
+        sizes[i]  = sizeMin  + Math.random() * (sizeMax  - sizeMin);
+        alphas[i] = alphaMin + Math.random() * (alphaMax - alphaMin);
+
+        speeds[i] = speedMin + Math.random() * (speedMax - speedMin);
+        amps[i]   = ampMin   + Math.random() * (ampMax   - ampMin);
+        phases[i] = Math.random() * Math.PI * 2.0;
+      }
+
+      const geometry = new THREE.BufferGeometry();
+      geometry.setAttribute("position", new THREE.BufferAttribute(positions, 3));
+      geometry.setAttribute("size",     new THREE.BufferAttribute(sizes, 1));
+      geometry.setAttribute("alpha",    new THREE.BufferAttribute(alphas, 1));
+      geometry.setAttribute("phase",    new THREE.BufferAttribute(phases, 1));
+
+      const material = new THREE.ShaderMaterial({
+        vertexShader,
+        fragmentShader,
+        transparent: true,
+        depthWrite: false,
+        blending: THREE.AdditiveBlending,
+        uniforms: {
+          uColor: { value: new THREE.Color(color) },
+          uTime:  { value: 0 }
+        }
+      });
+
+      const points = new THREE.Points(geometry, material);
+      scene.add(points);
+
+      return {
+        count,
+        geometry,
+        basePositions,
+        speeds,
+        amps,
+        phases,
+        points,
+        material
+      };
+    }
+
+    // ================ 背景层：更细小、通透（偏蓝） ================
+    const backLayer = createParticleLayer({
+      count:    420,
+      areaXY:   980,
+      areaZ:    400,
+      sizeMin:  4,
+      sizeMax:  10,     // 像素级光点
+      alphaMin: 0.05,
+      alphaMax: 0.14,
+      color:    0xbfe7ff,  // 淡蓝
+      speedMin: 0.25,
+      speedMax: 0.6,
+      ampMin:   12,
+      ampMax:   24
+    });
+
+    // ================ 前景拖尾层：比主前景更淡一些 ================
+    const frontTrailLayer = createParticleLayer({
+      count:    80,
+      areaXY:   820,
+      areaZ:    260,
+      sizeMin:  8,
+      sizeMax:  50,       // 稍小一点
+      alphaMin: 0.07,
+      alphaMax: 0.18,     // 比主粒子更淡
+      color:    0xaed5ff, // 偏蓝一点的淡光
+      speedMin: 0.5,
+      speedMax: 0.8,
+      ampMin:   16,
+      ampMax:   32
+    });
+
+    // ================ 前景层：稍大、少量（蓝+一点紫） ================
+    const frontLayer = createParticleLayer({
+      count:    80,
+      areaXY:   820,
+      areaZ:    260,
+      sizeMin:  8,
+      sizeMax:  80,     // 稍大一点的虚光（保留你的设置）
+      alphaMin: 0.10,
+      alphaMax: 0.22,
+      color:    0xdcc4ff,  // 带点紫的淡光
+      speedMin: 0.5,
+      speedMax: 0.8,
+      ampMin:   16,
+      ampMax:   32
+    });
+
+    // ================== 通用更新函数 ==================
+    const clock = new THREE.Clock();
+
+    function updateLayer(layer, time, amplitudeScale = 1) {
+      const { count, geometry, basePositions, speeds, amps, phases } = layer;
+      const arr = geometry.attributes.position.array;
+
+      for (let i = 0; i < count; i++) {
+        const i3    = i * 3;
+        const baseX = basePositions[i3 + 0];
+        const baseY = basePositions[i3 + 1];
+
+        const speed = speeds[i];
+        const amp   = amps[i] * amplitudeScale;
+        const phase = phases[i];
+
+        arr[i3 + 0] = baseX + Math.sin(time * speed + phase)         * amp;
+        arr[i3 + 1] = baseY + Math.cos(time * speed * 0.85 + phase) * amp * 0.6;
+      }
+
+      geometry.attributes.position.needsUpdate = true;
+    }
+
+    // ================== 动画 ==================
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const t = clock.getElapsedTime();
+
+      // 更新位移
+      updateLayer(backLayer,        t * 0.6, 1.0);   // 背景慢一点
+    //   updateLayer(frontTrailLayer,  t * 0.9 - 0.5, 1.05); // 拖尾稍滞后
+    updateLayer(frontTrailLayer,  t * 0.75 - 1.2, 1.30);
+
+      updateLayer(frontLayer,       t * 0.9, 1.1);   // 主前景
+
+      // 轻微旋转
+      backLayer.points.rotation.z        = t * 0.018;
+      frontTrailLayer.points.rotation.z  = t * 0.022;
+      frontLayer.points.rotation.z       = t * 0.025;
+
+      // 更新时间到 Shader（控制闪烁）
+      backLayer.material.uniforms.uTime.value       = t;
+      frontTrailLayer.material.uniforms.uTime.value = t;
+      frontLayer.material.uniforms.uTime.value      = t;
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

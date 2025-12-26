@@ -1,0 +1,56 @@
+.flyingDreamBackground {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  z-index: 0;
+  overflow: hidden;
+}
+
+.backgroundImage {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-size: cover;
+  background-position: center;
+  background-repeat: no-repeat;
+  z-index: 1;
+  will-change: transform;
+  transform-origin: center center;
+  animation: breathingAnimation 20s ease-in-out infinite;
+}
+
+/* 呼吸动画 - 缓慢缩放和微移 */
+@keyframes breathingAnimation {
+  0%, 100% {
+    transform: scale(1.05) translate3d(0, 0, 0);
+  }
+  50% {
+    transform: scale(1.15) translate3d(-3%, -3%, 0);
+  }
+}
+
+.particlesCanvas {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  z-index: 2;
+  pointer-events: none;
+}
+
+.floatingElement {
+  position: absolute;
+  z-index: 3;
+  pointer-events: none;
+  will-change: transform;
+  transform-origin: left top;
+  display: block;
+  /* 元素会根据屏幕大小自动缩放 */
+  width: auto;
+  height: auto;
+}

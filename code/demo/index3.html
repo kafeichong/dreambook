@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>水波纹效果</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    html, body { width: 100%; height: 100%; background: #000; overflow: hidden; }
+    #info {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      color: white;
+      font-family: monospace;
+      background: rgba(0, 0, 0, 0.7);
+      padding: 10px;
+      border-radius: 5px;
+      z-index: 100;
+    }
+  </style>
+
+  <!-- ✅ Pixi v7 legacy -->
+  <script src="https://cdn.jsdelivr.net/npm/pixi.js-legacy@7/dist/pixi-legacy.min.js"></script>
+</head>
+<body>
+  <div id="info">加载中...</div>
+
+  <script>
+    const infoDiv = document.getElementById('info');
+
+    function log(msg) {
+      console.log(msg);
+      infoDiv.innerHTML += '<br>' + msg;
+    }
+
+    log("PIXI VERSION = " + PIXI.VERSION);
+    log("DisplacementFilter = " + (PIXI.filters.DisplacementFilter ? '✅' : '❌'));
+
+    // 1. 创建应用
+    const app = new PIXI.Application({
+      width: window.innerWidth,
+      height: window.innerHeight,
+      backgroundColor: 0x000000,
+      antialias: true,
+      resizeTo: window
+    });
+    document.body.appendChild(app.view);
+
+    // 用于存储资源
+    let bgStatic, bgWater, personSprite, dispSprite, displacementFilter, maskSprite;
+
+    // 2. 加载资源
+    log("开始加载资源...");
+
+    PIXI.Assets.add('background', '10_bg.webp');
+    PIXI.Assets.add('person', '10_bg_preson.png');
+    PIXI.Assets.add('waterMap', 'water-normal.jpg');
+    PIXI.Assets.add('poolMask', 'pool-mask.png');
+
+    PIXI.Assets.load(['background', 'person', 'waterMap', 'poolMask']).then((textures) => {
+      log("✅ 资源加载完成");
+
+      // 计算缩放比例（所有元素共用）
+      const scale = Math.max(
+        app.renderer.width / textures.background.width,
+        app.renderer.height / textures.background.height
+      );
+
+      // 1. 创建底层完整背景（静态，不带滤镜）
+      bgStatic = new PIXI.Sprite(textures.background);
+      bgStatic.anchor.set(0.5);
+      bgStatic.x = app.renderer.width / 2;
+      bgStatic.y = app.renderer.height / 2;
+      bgStatic.scale.set(scale);
+      app.stage.addChild(bgStatic);
+      log("✅ 静态背景添加完成");
+
+      // 2. 创建水面背景层（带水波效果）
+      bgWater = new PIXI.Sprite(textures.background);
+      bgWater.anchor.set(0.5);
+      bgWater.x = app.renderer.width / 2;
+      bgWater.y = app.renderer.height / 2;
+      bgWater.scale.set(scale);
+      app.stage.addChild(bgWater);
+
+      // 3. 创建遮罩精灵（定义水面区域）
+      maskSprite = new PIXI.Sprite(textures.poolMask);
+      maskSprite.anchor.set(0.5);
+      maskSprite.x = app.renderer.width / 2;
+      maskSprite.y = app.renderer.height / 2;
+      maskSprite.scale.set(scale);
+      app.stage.addChild(maskSprite);
+
+      // 将遮罩应用到水面层（只有水面区域可见并有波纹）
+      bgWater.mask = maskSprite;
+      log("✅ 水面层添加完成");
+
+      // 4. 创建人物层（透明背景，覆盖在最上层，不受滤镜影响）
+      personSprite = new PIXI.Sprite(textures.person);
+      personSprite.anchor.set(0.5);
+      personSprite.x = app.renderer.width / 2;
+      personSprite.y = app.renderer.height / 2;
+      personSprite.scale.set(scale);
+      app.stage.addChild(personSprite);
+      log("✅ 人物层添加完成");
+
+      // 创建位移贴图精灵
+      dispSprite = new PIXI.Sprite(textures.waterMap);
+      dispSprite.texture.baseTexture.wrapMode = PIXI.WRAP_MODES.REPEAT;
+
+      // 增大位移贴图的缩放，避免重复边界过于明显
+      const dispScale = Math.max(
+        app.renderer.width / dispSprite.texture.width,
+        app.renderer.height / dispSprite.texture.height
+      ) * 4; // 放大4倍，让贴图更大，重复更平滑
+
+      dispSprite.scale.set(dispScale);
+      dispSprite.anchor.set(0);
+      dispSprite.x = 0;
+      dispSprite.y = 0;
+
+      // 位移贴图不需要显示，设为完全透明
+      dispSprite.alpha = 0;
+      app.stage.addChild(dispSprite);
+      log("✅ 位移贴图添加完成");
+
+      // 4. 创建位移滤镜
+      displacementFilter = new PIXI.filters.DisplacementFilter(dispSprite);
+
+      // 增强位移强度，让波纹效果更明显
+      displacementFilter.scale.x = 60;
+      displacementFilter.scale.y = 60;
+
+      // 将滤镜只应用到水面层
+      bgWater.filters = [displacementFilter];
+      log("✅ 滤镜应用到水面层完成");
+
+      // 启动动画
+      app.ticker.add(animate);
+      log("✅ 动画启动");
+
+      // 3秒后隐藏信息框
+      setTimeout(() => {
+        infoDiv.style.opacity = '0';
+        infoDiv.style.transition = 'opacity 1s';
+      }, 3000);
+
+    }).catch((error) => {
+      log("❌ 加载失败: " + error.message);
+      console.error("Loading error:", error);
+    });
+
+    // 动画函数
+    function animate(delta) {
+      if (dispSprite) {
+        // 增加移动速度，让波纹流动更明显
+        dispSprite.x += 0.8 * delta;
+        dispSprite.y += 0.5 * delta;
+
+        // 使用模运算保持无缝循环，避免跳动
+        const texWidth = dispSprite.texture.width * dispSprite.scale.x;
+        const texHeight = dispSprite.texture.height * dispSprite.scale.y;
+
+        dispSprite.x = dispSprite.x % texWidth;
+        dispSprite.y = dispSprite.y % texHeight;
+      }
+    }
+
+    // 响应窗口大小变化
+    window.addEventListener('resize', () => {
+      if (bgStatic && bgWater && personSprite) {
+        const scale = Math.max(
+          app.renderer.width / bgStatic.texture.width,
+          app.renderer.height / bgStatic.texture.height
+        );
+
+        // 更新静态背景
+        bgStatic.x = app.renderer.width / 2;
+        bgStatic.y = app.renderer.height / 2;
+        bgStatic.scale.set(scale);
+
+        // 更新水面背景
+        bgWater.x = app.renderer.width / 2;
+        bgWater.y = app.renderer.height / 2;
+        bgWater.scale.set(scale);
+
+        // 更新人物层
+        personSprite.x = app.renderer.width / 2;
+        personSprite.y = app.renderer.height / 2;
+        personSprite.scale.set(scale);
+
+        // 更新遮罩
+        if (maskSprite) {
+          maskSprite.x = app.renderer.width / 2;
+          maskSprite.y = app.renderer.height / 2;
+          maskSprite.scale.set(scale);
+        }
+      }
+
+      if (dispSprite) {
+        const dispScale = Math.max(
+          app.renderer.width / dispSprite.texture.width,
+          app.renderer.height / dispSprite.texture.height
+        ) * 4; // 保持和初始化时一致的缩放
+        dispSprite.scale.set(dispScale);
+      }
+    });
+  </script>
+</body>
+</html>

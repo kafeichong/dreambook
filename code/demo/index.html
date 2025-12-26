@@ -1,0 +1,166 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8" />
+  <title>Library BG + Glow Particles</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      overflow: hidden;
+      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    }
+
+    /* 底层的 CSS 霓光背景 */
+    .bg-layer {
+      position: fixed;
+      inset: 0;
+      background:
+        radial-gradient(circle at 20% 20%, rgba(255, 255, 255, 0.55), transparent 60%),
+        radial-gradient(circle at 80% 30%, rgba(0, 255, 255, 0.55), transparent 60%),
+        radial-gradient(circle at 10% 80%, rgba(140, 0, 255, 0.6), transparent 60%),
+        radial-gradient(circle at 70% 90%, rgba(0, 120, 255, 0.6), transparent 60%),
+        linear-gradient(135deg, #2b0c67 0%, #0f4b9f 45%, #2bdcff 100%);
+      filter: blur(0.2px);
+      z-index: 0;
+    }
+
+    /* three.js 画布，盖在背景上面但不挡交互 */
+    canvas#webgl {
+      position: fixed;
+      inset: 0;
+      z-index: 1;
+      pointer-events: none; /* 不挡触摸/点击 */
+    }
+
+    /* 你原来页面上的文字等内容，可以在更上层 */
+    .ui-layer {
+      position: fixed;
+      inset: 0;
+      z-index: 2;
+      display: flex;
+      align-items: flex-end;
+      justify-content: center;
+      padding: 40px;
+      color: #00ff6b;
+      font-size: 32px;
+      text-shadow: 0 0 20px rgba(0,0,0,0.7);
+    }
+  </style>
+</head>
+<body>
+  <div class="bg-layer"></div>
+  <canvas id="webgl"></canvas>
+
+  <div class="ui-layer">
+    曲：木村充利
+  </div>
+
+  <!-- three.js demo 脚本 -->
+  <script type="module">
+    import * as THREE from "https://unpkg.com/three@0.160.0/build/three.module.js";
+
+    const canvas = document.getElementById("webgl");
+
+    const renderer = new THREE.WebGLRenderer({
+      canvas,
+      antialias: true,
+      alpha: true,          // 允许透明
+    });
+    // 画布透明，下面 CSS 背景透出来
+    renderer.setClearColor(0x000000, 0);
+
+    const scene = new THREE.Scene();
+
+    const camera = new THREE.PerspectiveCamera(
+      45,
+      window.innerWidth / window.innerHeight,
+      1,
+      2000
+    );
+    camera.position.z = 600;
+
+    // 加载粒子贴图
+    const textureLoader = new THREE.TextureLoader();
+    const particleTexture = textureLoader.load("particle.png");
+
+    const particles = new THREE.Group();
+    scene.add(particles);
+
+    const PARTICLE_COUNT = 200; // 星点数量
+    const AREA = 800;           // 分布区域
+
+    for (let i = 0; i < PARTICLE_COUNT; i++) {
+      const material = new THREE.SpriteMaterial({
+        map: particleTexture,
+        color: 0xffffff,
+        transparent: true,
+        opacity: 1,                    // 稍微轻一点
+        depthWrite: false,               // 不写深度，互相不会“抹掉”
+        depthTest: true,
+        blending: THREE.alpha // 关键：加色混合，通透无黑边
+      });
+
+      const sprite = new THREE.Sprite(material);
+
+      sprite.position.set(
+        (Math.random() - 0.5) * AREA,
+        (Math.random() - 0.5) * AREA,
+        (Math.random() - 0.5) * 200
+      );
+
+      // 控制大小，模拟远近
+      const scale = 20 + Math.random() * 40;
+      sprite.scale.set(scale, scale, 1);
+
+      // 给每个点一点随机“漂浮”参数
+      sprite.userData = {
+        baseX: sprite.position.x,
+        baseY: sprite.position.y,
+        offset: Math.random() * Math.PI * 2,
+        speed: 0.2 + Math.random() * 0.5,
+        amplitude: 20 + Math.random() * 30
+      };
+
+      particles.add(sprite);
+    }
+
+    function onResize() {
+      const w = window.innerWidth;
+      const h = window.innerHeight;
+      camera.aspect = w / h;
+      camera.updateProjectionMatrix();
+      renderer.setSize(w, h);
+      renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+    }
+
+    window.addEventListener("resize", onResize);
+    onResize();
+
+    // 动画循环：轻微漂浮 + 整体缓慢旋转
+    const clock = new THREE.Clock();
+
+    function animate() {
+      requestAnimationFrame(animate);
+
+      const t = clock.getElapsedTime();
+
+      particles.children.forEach(sprite => {
+        const u = sprite.userData;
+        sprite.position.x = u.baseX + Math.sin(t * u.speed + u.offset) * u.amplitude;
+        sprite.position.y = u.baseY + Math.cos(t * u.speed + u.offset) * (u.amplitude * 0.6);
+      });
+
+      particles.rotation.z = t * 0.03;
+
+      renderer.render(scene, camera);
+    }
+
+    animate();
+  </script>
+</body>
+</html>

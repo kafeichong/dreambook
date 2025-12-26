@@ -1,0 +1,19 @@
+The Teapot_Example scenes for 3ds max include a built-in setup for rendering volumetric light (god rays), that can be composited on top of the beauty render in After Effects, Fusion etc.
+
+Note: The V-Ray 5 example scenes for 3ds max utilize the material library that is included with V-Ray 5. If you do not have the material library installed, the objects in the scene will be missing their textures.
+
+This is how you enable the volumetric light pass:
+
+1. Open one of the Teapot*.max example scenes in 3ds max
+2. Make sure to relink all bitmaps so that the V-Ray shaders and Caustic maps are properly loaded (the VRayBitmap for both caustic maps should be set to "Inverse Gamma" or "None" in the Color Space Transfer Function)
+3. Open Scene Explorer/Layer Manager and hide the "02_Lights_for_Beauty" layer and unhide the "03_Lights_for_VolumeLight" layer
+4. Open the Render Setup window and inside the V-Ray tab, go to Global Switches and enable the Material Override (there should already be a BLACK material inside it)
+5. Next go to the GI tab and disable Global Illumination
+6. Hit render - and the result should be an image with only volumetric light/god rays shining down on the seabed, ready for compositing on top of your beauty pass with Add/Screen blending mode
+
+Happy rendering!
+
+
+Best regards,
+
+Henrik
