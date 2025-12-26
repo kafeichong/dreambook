@@ -1,0 +1,17 @@
+# Large design files (exceed GitHub 100MB limit)
+desgin/梦境解析文件/梦境解析UI.ai
+desgin/梦境解析替换页1222 2.ai
+desgin/梦境解析替换页.ai
+
+# Large Figma files (over 50MB recommended limit)
+desgin/梦境解析02.fig
+desgin/梦境解析.fig
+
+# Common ignores
+.DS_Store
+*.log
+node_modules/
+dist/
+dist-electron/
+release/
+
