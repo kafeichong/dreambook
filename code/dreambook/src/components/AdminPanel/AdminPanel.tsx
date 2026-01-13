@@ -106,6 +106,11 @@ const styles: Record<string, CSSProperties> = {
     border: '1px solid #FF0079',
     color: 'white',
   },
+  switchUserButton: {
+    background: 'rgba(255, 180, 100, 0.3)',
+    border: '1px solid rgba(255, 180, 100, 0.6)',
+    color: '#ffc080',
+  },
   hint: {
     marginTop: '20px',
     textAlign: 'center' as const,
@@ -149,6 +154,22 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
         await window.electronAPI.exitApp()
       } catch (error) {
         console.error('退出失败:', error)
+      }
+    }
+  }
+
+  // 切换用户（Windows）
+  const handleSwitchUser = async () => {
+    if (!window.electronAPI?.switchUser) {
+      alert('切换用户功能仅在 Windows Electron 环境下可用')
+      return
+    }
+
+    if (confirm('确定要切换用户吗？应用将退出到登录界面。')) {
+      try {
+        await window.electronAPI.switchUser()
+      } catch (error) {
+        console.error('切换用户失败:', error)
       }
     }
   }
@@ -227,6 +248,22 @@ export default function AdminPanel({ isOpen, onClose }: AdminPanelProps) {
               }}
             >
               退出应用
+            </button>
+            <button
+              onClick={handleSwitchUser}
+              style={{ ...styles.button, ...styles.switchUserButton }}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 180, 100, 0.5)'
+                e.currentTarget.style.transform = 'translateY(-2px)'
+                e.currentTarget.style.boxShadow = '0 4px 20px rgba(255, 180, 100, 0.4)'
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'rgba(255, 180, 100, 0.3)'
+                e.currentTarget.style.transform = 'translateY(0)'
+                e.currentTarget.style.boxShadow = 'none'
+              }}
+            >
+              切换用户
             </button>
           </div>
 

@@ -4,6 +4,7 @@
  * 功能：
  * - 在屏幕右上角提供隐藏的触发区域
  * - 连续点击 5 次打开管理员面板
+ * - 支持鼠标点击和触摸点击
  */
 
 import { useState, useCallback } from 'react'
@@ -24,7 +25,7 @@ export default function AdminTrigger({
   const [lastClickTime, setLastClickTime] = useState(0)
   const [isPanelOpen, setIsPanelOpen] = useState(false)
 
-  const handleClick = useCallback((e: React.MouseEvent) => {
+  const handleClick = useCallback((e: React.MouseEvent | React.TouchEvent) => {
     e.preventDefault()
     e.stopPropagation()
 

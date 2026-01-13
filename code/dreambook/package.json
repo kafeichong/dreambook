@@ -25,8 +25,8 @@
     "electron:build:win": "powershell -ExecutionPolicy Bypass -File scripts/build-win.ps1",
     "electron:build:win:dir": "powershell -ExecutionPolicy Bypass -File scripts/build-win.ps1 -Dir",
     "electron:build:win:skip-check": "powershell -ExecutionPolicy Bypass -File scripts/build-win.ps1 -SkipCheck",
-    "electron:build:win:macos": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win --dir",
-    "electron:build:win:macos:skip-check": "npm run build:skip-check && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win --dir",
+    "electron:build:win:macos": "npm run build && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win --x64 --dir",
+    "electron:build:win:macos:skip-check": "npm run build:skip-check && CSC_IDENTITY_AUTO_DISCOVERY=false electron-builder --win --x64 --dir",
     "electron:build:mac": "npm run build && electron-builder --mac",
     "electron:pack": "npm run build && electron-builder --dir",
     "electron:dmg": "npm run build && electron-builder --mac --x64 --arm64"
@@ -89,19 +89,14 @@
     "win": {
       "target": [
         {
-          "target": "zip",
-          "arch": [
-            "x64"
-          ]
-        },
-        {
-          "target": "dir",
+          "target": "nsis",
           "arch": [
             "x64"
           ]
         }
       ],
-      "icon": "public/logo.png"
+      "icon": "public/logo.png",
+      "requestedExecutionLevel": "asInvoker"
     },
     "mac": {
       "target": [

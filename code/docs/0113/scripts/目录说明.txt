@@ -1,0 +1,51 @@
+═══════════════════════════════════════════════
+  DreamBook Kiosk 脚本目录结构
+═══════════════════════════════════════════════
+
+当前目录包含 12 个必要文件：
+
+【一键启动器】(3个)
+  ✓ run-setup-as-admin.bat
+  ✓ run-cleanup-as-admin.bat
+  ✓ run-fix-keyboard-as-admin.bat
+
+【核心脚本】(6个)
+  ✓ setup-kiosk-en.bat
+  ✓ setup-kiosk.ps1
+  ✓ cleanup-kiosk-v3-en.bat
+  ✓ cleanup-kiosk-v3.ps1
+  ✓ fix-keyboard-kiosk-v2.bat
+  ✓ fix-keyboard-kiosk-v2.ps1
+
+【工具】(1个)
+  ✓ diagnose-keyboard.bat
+
+【文档】(2个)
+  ✓ README.md
+  ✓ 请先看这里-v2.txt
+
+═══════════════════════════════════════════════
+
+【归档目录】_archive/
+
+包含 12 个旧版本文件：
+  - 有编码问题的旧脚本
+  - 过于详细的旧文档
+  - v1.0 版本脚本
+
+这些文件已不再需要，保留仅供参考。
+
+═══════════════════════════════════════════════
+
+【使用建议】
+
+新用户：
+  1. 阅读 README.md
+  2. 双击 run-*-as-admin.bat
+
+遇到问题：
+  1. 查看 README.md 故障排除部分
+  2. 阅读 请先看这里-v2.txt
+  3. 运行 diagnose-keyboard.bat
+
+═══════════════════════════════════════════════

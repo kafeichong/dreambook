@@ -12,6 +12,9 @@ contextBridge.exposeInMainWorld('electronAPI', {
   // 应用控制
   restartApp: () => ipcRenderer.invoke('restart-app'),
   exitApp: () => ipcRenderer.invoke('exit-app'),
+
+  // 切换用户（Windows）
+  switchUser: () => ipcRenderer.invoke('sys:switch-user'),
 })
 
 // 类型声明，供 TypeScript 使用
@@ -23,6 +26,7 @@ declare global {
       hideVirtualKeyboard: () => Promise<boolean>
       restartApp: () => Promise<void>
       exitApp: () => Promise<void>
+      switchUser: () => Promise<void>
     }
   }
 }

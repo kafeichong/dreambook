@@ -297,42 +297,27 @@ function findTabTipPath(): string {
  * 使用 PowerShell 调用虚拟键盘（Win11 更可靠的方式）
  */
 function showKeyboardViaPowerShell(): void {
-  const isDev = !app.isPackaged
-
-  // PowerShell 脚本：通过 COM 接口调用虚拟键盘
+  // 简化版 PowerShell 脚本：避免复杂转义和中文字符
   const psScript = `
-    Add-Type -AssemblyName System.Windows.Forms;
-    $signature = @'
-    [DllImport("user32.dll", CharSet = CharSet.Auto)]
-    public static extern IntPtr FindWindow(string className, string windowTitle);
-    [DllImport("user32.dll")]
-    public static extern bool ShowWindow(IntPtr hWnd, int nCmdShow);
-'@;
-    $showWindow = Add-Type -MemberDefinition $signature -Name Win32ShowWindow -Namespace Win32Functions -PassThru;
-    $tabtip = $showWindow::FindWindow("IPTip_Main_Window", $null);
-    if ($tabtip -eq [IntPtr]::Zero) {
-      Start-Process "ms-availableinsettings:touch-keyboard" -ErrorAction SilentlyContinue
-      Start-Sleep -Milliseconds 200
-      $tabtip = $showWindow::FindWindow("IPTip_Main_Window", $null);
-    }
-    if ($tabtip -ne [IntPtr]::Zero) {
-      $showWindow::ShowWindow($tabtip, 9) | Out-Null;
+    try {
+      $wshell = New-Object -ComObject WScript.Shell;
+      $wshell.Run("tabtip.exe", 0);
+    } catch {
+      Start-Process "ms-availableinsettings:touch-keyboard" -ErrorAction SilentlyContinue;
     }
   `.trim()
 
-  if (isDev) {
-    log('[虚拟键盘] 使用 PowerShell COM 接口调用')
-  }
+  log('[虚拟键盘] 执行 PowerShell 脚本')
 
   exec(
-    `powershell -NoProfile -ExecutionPolicy Bypass -Command "${psScript.replace(/"/g, '`"')}"`,
-    (error) => {
+    `powershell -NoProfile -ExecutionPolicy Bypass -Command "${psScript.replace(/"/g, '\\"')}"`,
+    (error, stdout, stderr) => {
+      if (stdout) log(`[虚拟键盘] 输出: ${stdout.trim()}`)
+      if (stderr) log(`[虚拟键盘] 错误: ${stderr.trim()}`)
       if (error) {
-        if (isDev) {
-          log(`[虚拟键盘] PowerShell 调用失败: ${error.message}`)
-        }
+        log(`[虚拟键盘] 执行失败: ${error.message}`)
       } else {
-        log('[虚拟键盘] ✅ PowerShell 调用成功')
+        log('[虚拟键盘] ✅ PowerShell 执行完成')
       }
     }
   )
@@ -371,45 +356,31 @@ function showWindowsVirtualKeyboard(): void {
       log('[虚拟键盘] 方法 1: PowerShell COM 接口')
       showKeyboardViaPowerShell()
 
-      // 方法 2：TabTip.exe（备用）- 添加强制启动参数
+      // 方法 2：TabTip.exe（备用）
       setTimeout(() => {
         const tabtipPath = findTabTipPath()
-        log(`[虚拟键盘] 方法 2: 尝试启动 TabTip.exe: ${tabtipPath}`)
+        log(`[虚拟键盘] 方法 2: TabTip.exe - ${tabtipPath}`)
+        exec(`"${tabtipPath}"`, (error1) => {
+          if (error1) {
+            log(`[虚拟键盘] TabTip 启动失败: ${error1.message}`)
 
-        // 使用 /input.touchkeyboard.launchtype auto 参数强制启动键盘
-        exec(`"${tabtipPath}" /input.touchkeyboard.launchtype auto`, (error) => {
-          if (error) {
-            log(`[虚拟键盘] TabTip.exe 启动失败: ${error.message}`)
-
-            // 方法 3：使用 URI 协议
-            log('[虚拟键盘] 方法 3: 使用 URI 协议')
-            exec('explorer.exe ms-availableinsettings:touch-keyboard', (uriError) => {
+            // 方法 3：URI 协议（最后的备用）
+            log('[虚拟键盘] 方法 3: URI 协议')
+            exec('start ms-availableinsettings:touch-keyboard', (uriError) => {
               if (uriError) {
                 log(`[虚拟键盘] URI 协议失败: ${uriError.message}`)
-
-                // 方法 4：osk.exe（最后的备用方案）
-                log('[虚拟键盘] 方法 4: 尝试 osk.exe')
-                exec('osk.exe', (oskError) => {
-                  if (oskError) {
-                    log(`[虚拟键盘] ❌ 所有方法均失败: ${oskError.message}`)
-                  } else {
-                    log('[虚拟键盘] ✅ 已启动传统屏幕键盘 (osk.exe)')
-                  }
-                  isKeyboardStarting = false
-                })
-              } else {
-                log('[虚拟键盘] ✅ 已通过 URI 协议启动')
-                isKeyboardStarting = false
+                log('[虚拟键盘] 所有方法均尝试完毕')
               }
+              isKeyboardStarting = false
             })
           } else {
-            log('[虚拟键盘] ✅ 已强制启动触摸键盘 (TabTip.exe + launchtype auto)')
+            log('[虚拟键盘] ✅ TabTip 启动成功')
             isKeyboardStarting = false
           }
         })
-      }, 300) // 300ms 后尝试 TabTip.exe
+      }, 300)
 
-      // 1秒后重置防抖标志
+      // 1秒后重置防抖标志（确保不会永久锁定）
       setTimeout(() => {
         isKeyboardStarting = false
         log('[虚拟键盘] 防抖标志已重置')
@@ -418,7 +389,7 @@ function showWindowsVirtualKeyboard(): void {
       log(`[虚拟键盘] ❌ 启动异常: ${err}`)
       isKeyboardStarting = false
     }
-  }, 50) // 50ms 延迟，确保触摸事件已处理
+  }, 50)
 
   log('[虚拟键盘] ===========================')
 }
@@ -716,6 +687,31 @@ function setupIPC(): void {
     log('[管理面板] 手动触发应用退出')
     isQuitting = true
     app.quit()
+  })
+
+  // 切换用户（Windows 特定功能）
+  ipcMain.handle('sys:switch-user', () => {
+    log('[系统] 执行切换用户命令')
+    if (process.platform !== 'win32') {
+      log('[系统] 非 Windows 平台，跳过切换用户')
+      return
+    }
+
+    try {
+      // Windows Terminal Disconnect - 断开当前用户，回到登录界面
+      exec('C:\\Windows\\System32\\tsdiscon.exe', (error) => {
+        if (error) {
+          log(`[系统] 切换用户失败: ${error.message}`)
+        } else {
+          log('[系统] ✅ 已成功切换用户')
+        }
+      })
+
+      // 同时标记应用要退出，防止重启
+      isQuitting = true
+    } catch (error) {
+      log(`[系统] 切换用户异常: ${error}`)
+    }
   })
 }
 
