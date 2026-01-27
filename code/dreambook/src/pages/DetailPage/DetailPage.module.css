@@ -50,6 +50,86 @@
   z-index: 20;
 }
 
+/* 相似梦境导航区域 */
+.similarDreamNavigator {
+  position: absolute;
+  left: 50%;
+  bottom: 0%;
+  transform: translate(-50%, -50%);
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  z-index: 15;
+}
+
+.navigatorText {
+  text-align: center;
+  color: #fff;
+  font-family: 'Microsoft YaHei', sans-serif;
+  font-size: 16px;
+  font-weight: 500;
+  letter-spacing: 1px;
+  white-space: nowrap;
+  min-width: 200px;
+}
+
+.navigatorText p {
+  margin: 0;
+}
+
+.navArrowButton {
+  width: 54px;
+  height: 54px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255, 255, 255, 0.01);
+  /* backdrop-filter: blur(10px); */
+  /* border: 1px solid rgba(255, 255, 255, 0.2); */
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  padding: 0;
+  line-height: 1;
+}
+
+.navArrowButton:hover:not(.disabled) {
+  /* background: rgba(255, 255, 255, 0.2); */
+  /* border-color: rgba(255, 255, 255, 0.3); */
+  /* box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1); */
+  transform: scale(1.05);
+}
+
+.navArrowButton:active:not(.disabled) {
+  transform: scale(0.95);
+}
+
+.navArrowButton.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.leftArrow {
+  order: -1;
+}
+
+.leftArrow svg {
+  transform: scaleX(-1);
+}
+
+.rightArrow {
+  order: 1;
+}
+
+.navArrowButton svg {
+  width: 24px;
+  height: 24px;
+  display: block;
+}
+
 /* 返回按钮 */
 .backButton,
 .homeButton {
@@ -277,6 +357,24 @@
   .contentCard {
     width: 600px;
   }
+
+  .similarDreamNavigator {
+    gap: 50px;
+  }
+
+  .navigatorText {
+    font-size: 15px;
+  }
+
+  .navArrowButton {
+    width: 48px;
+    height: 48px;
+  }
+
+  .navArrowButton svg {
+    width: 20px;
+    height: 20px;
+  }
 }
 
 @media (max-width: 1200px) {
@@ -309,6 +407,24 @@
 
   .textContent {
     font-size: 14px;
+  }
+
+  .similarDreamNavigator {
+    gap: 40px;
+  }
+
+  .navigatorText {
+    font-size: 14px;
+  }
+
+  .navArrowButton {
+    width: 44px;
+    height: 44px;
+  }
+
+  .navArrowButton svg {
+    width: 18px;
+    height: 18px;
   }
 }
 
@@ -367,5 +483,24 @@
 
   .textContent {
     font-size: 14px;
+  }
+
+  .similarDreamNavigator {
+    gap: 30px;
+  }
+
+  .navigatorText {
+    font-size: 13px;
+    min-width: auto;
+  }
+
+  .navArrowButton {
+    width: 40px;
+    height: 40px;
+  }
+
+  .navArrowButton svg {
+    width: 16px;
+    height: 16px;
   }
 }

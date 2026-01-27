@@ -1,0 +1,160 @@
+.carouselWrapper {
+  position: relative;
+  margin-bottom: 40px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  padding: 0 40px;
+}
+
+/* Swiper 容器 */
+.swiper {
+  flex: 1;
+  position: relative;
+}
+
+.swiper :global(.swiper-wrapper) {
+  align-items: stretch;
+}
+
+.slide {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: auto;
+}
+
+/* 导航按钮 */
+.navButton {
+  width: 65px;
+  height: 65px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  /* background: rgba(255, 255, 255, 0.1); */
+  backdrop-filter: blur(10px);
+  /* border: 1px solid rgba(255, 255, 255, 0.2); */
+  border-radius: 50%;
+  color: #fff;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  flex-shrink: 0;
+  font-size: 20px;
+  z-index: 10;
+  padding: 0;
+  line-height: 1;
+}
+
+.navButton:hover:not(.disabled) {
+  /* background: rgba(255, 255, 255, 0.2); */
+  /* border-color: rgba(255, 255, 255, 0.3); */
+  /* box-shadow: 0 4px 16px rgba(255, 255, 255, 0.1); */
+  transform: scale(1.05);
+}
+
+.navButton:active:not(.disabled) {
+  transform: scale(0.95);
+}
+
+/* 禁用状态 */
+.navButton.disabled {
+  opacity: 0.4;
+  cursor: not-allowed;
+  background: rgba(255, 255, 255, 0.05);
+}
+
+.prevButton {
+  order: -1;
+}
+
+.nextButton {
+  order: 1;
+}
+
+/* SVG 图标样式 */
+.navButton svg {
+  width: 40px;
+  height: 40px;
+  display: block;
+}
+
+.prevArrow {
+  transform: scaleX(-1);
+}
+
+/* 响应式设计 */
+@media (max-width: 1200px) {
+  .carouselWrapper {
+    gap: 12px;
+  }
+
+  .navButton {
+    width: 48px;
+    height: 48px;
+    font-size: 18px;
+  }
+
+  .navButton svg {
+    width: 20px;
+    height: 20px;
+  }
+}
+
+@media (max-width: 768px) {
+  .carouselWrapper {
+    gap: 10px;
+  }
+
+  .navButton {
+    width: 40px;
+    height: 40px;
+    font-size: 16px;
+  }
+
+  .navButton svg {
+    width: 18px;
+    height: 18px;
+  }
+}
+
+@media (max-width: 480px) {
+  .carouselWrapper {
+    gap: 8px;
+  }
+
+  .navButton {
+    width: 36px;
+    height: 36px;
+    font-size: 14px;
+  }
+
+  .navButton svg {
+    width: 16px;
+    height: 16px;
+  }
+}
+
+/* 优化性能 */
+.swiper {
+  will-change: transform;
+}
+
+.slide {
+  will-change: transform;
+}
+
+/* 移除 Swiper 默认样式冲突 */
+.swiper :global(.swiper-slide) {
+  width: auto;
+  height: auto;
+}
+
+.swiper :global(.swiper-horizontal) > :global(.swiper-pagination-bullets),
+.swiper :global(.swiper-pagination-bullets.swiper-pagination-horizontal) {
+  display: none;
+}
+
+/* 过渡动画 */
+.swiper :global(.swiper-wrapper) {
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
+}

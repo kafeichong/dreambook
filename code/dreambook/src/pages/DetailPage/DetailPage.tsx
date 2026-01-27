@@ -20,6 +20,26 @@ export const DetailPage: React.FC = () => {
 
   const dream = data?.dreams.find((d: Dream) => d.id === id)
 
+  // 计算梦境索引（用于切换）
+  const dreamIndex = dream ? parseInt(dream.id) - 1 : -1
+  const totalDreams = data?.dreams.length || 0
+  const hasPrevious = dreamIndex > 0
+  const hasNext = dreamIndex < totalDreams - 1
+
+  const handlePreviousDream = () => {
+    if (hasPrevious) {
+      const prevId = String(dreamIndex).padStart(2, '0')
+      navigate(`/dream/${prevId}`)
+    }
+  }
+
+  const handleNextDream = () => {
+    if (hasNext) {
+      const nextId = String(dreamIndex + 2).padStart(2, '0')
+      navigate(`/dream/${nextId}`)
+    }
+  }
+
   useLayoutEffect(() => {
     if (!dream) return
 
@@ -83,7 +103,7 @@ export const DetailPage: React.FC = () => {
   return (
     <div className={styles.detailPage}>
       {/* 背景 */}
-      {dream.id === '10' ? (
+      {dream.id === '12' ? (
         <WaterWaveBackground
           backgroundImage={getAssetPath(`/assets/backgrounds/${dream.id}_bg.webp`)}
           personImage={getAssetPath(`/assets/backgrounds/${dream.id}_bg_preson.png`)}
@@ -121,13 +141,42 @@ export const DetailPage: React.FC = () => {
           </p>
         </div>
 
+        {/* 中间左右切换提示 */}
+        <div className={styles.similarDreamNavigator}>
+          <button
+            className={`${styles.navArrowButton} ${styles.leftArrow} ${!hasPrevious ? styles.disabled : ''}`}
+            onClick={handlePreviousDream}
+            disabled={!hasPrevious}
+            aria-label="上一个梦境"
+          >
+            <svg viewBox="0 0 36 63" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 4L31.381 31.381C31.7716 31.7716 31.7716 32.4047 31.381 32.7953L5.86299 58.3133" stroke="white" strokeOpacity="0.7" strokeWidth="8" strokeLinecap="round"/>
+            </svg>
+          </button>
+
+          <div className={styles.navigatorText}>
+            <p>点击选择相似梦境</p>
+          </div>
+
+          <button
+            className={`${styles.navArrowButton} ${styles.rightArrow} ${!hasNext ? styles.disabled : ''}`}
+            onClick={handleNextDream}
+            disabled={!hasNext}
+            aria-label="下一个梦境"
+          >
+            <svg viewBox="0 0 36 63" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M4 4L31.381 31.381C31.7716 31.7716 31.7716 32.4047 31.381 32.7953L5.86299 58.3133" stroke="white" strokeOpacity="0.7" strokeWidth="8" strokeLinecap="round"/>
+            </svg>
+          </button>
+        </div>
+
         {/* 右下角按钮组 */}
         <div className={styles.buttonGroup}>
           <button className={styles.backButton} onClick={() => navigate('/navigation')}>
             <svg className={styles.buttonIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor">
               <path d="M19 12H5M12 19l-7-7 7-7" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
             </svg>
-            返回上页
+            返回聚合页
           </button>
           <button className={styles.homeButton} onClick={() => navigate('/')}>
             <svg className={styles.buttonIcon} viewBox="0 0 24 24" fill="none" stroke="currentColor">

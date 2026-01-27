@@ -1,7 +1,7 @@
 .card {
   position: relative;
   width: 100%;
-  aspect-ratio: 16 / 9;
+  aspect-ratio: 330 / 260;
   border-radius: 16px;
   overflow: hidden;
   cursor: pointer;
@@ -13,6 +13,8 @@
   -webkit-backdrop-filter: blur(7px);
   background: linear-gradient(0deg, rgba(40, 44, 52, 0.9) 0%, rgba(17, 0, 32, 0.5) 100%);
   isolation: isolate;
+  /* 对触摸事件友好 */
+  touch-action: manipulation;
 }
 
 .card::before {
@@ -47,7 +49,138 @@
 }
 
 .card:active {
-  transform: scale(1.01);
+  transform: scale(1.015);
+  border-color: rgba(255, 255, 255, 0.27);
+  box-shadow: 0 7px 50px 10px rgba(0, 0, 0, 0.65);
+  filter: brightness(1.3);
+}
+
+.card:active::before {
+  left: 150%;
+}
+
+.card:active .image {
+  transform: scale(1.1);
+}
+
+.card:active .overlay {
+  opacity: 0.9;
+}
+
+.card:active .content {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.6) 50%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+
+.card:active .number {
+  color: rgba(102, 126, 234, 1);
+}
+
+.card:active .mainTitle {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
+.card:active .displaySubtitle {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+/* 支持hover的设备（桌面、带鼠标的触摸屏）*/
+@media (hover: hover) {
+  .card.active,
+  .card.touch-active {
+    transform: scale(1.015);
+    border-color: rgba(255, 255, 255, 0.27);
+    box-shadow: 0 7px 50px 10px rgba(0, 0, 0, 0.65);
+    filter: brightness(1.3);
+  }
+
+  .card.active::before,
+  .card.touch-active::before {
+    left: 150%;
+  }
+
+  .card.active .image,
+  .card.touch-active .image {
+    transform: scale(1.1);
+  }
+
+  .card.active .overlay,
+  .card.touch-active .overlay {
+    opacity: 0.9;
+  }
+
+  .card.active .content,
+  .card.touch-active .content {
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.6) 50%,
+      rgba(0, 0, 0, 0.85) 100%
+    );
+  }
+
+  .card.active .number,
+  .card.touch-active .number {
+    color: rgba(102, 126, 234, 1);
+  }
+
+  .card.active .mainTitle,
+  .card.touch-active .mainTitle {
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+  }
+
+  .card.active .displaySubtitle,
+  .card.touch-active .displaySubtitle {
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
+/* 纯触摸设备 - 使用:active伪类提供点击反馈 */
+@media (hover: none) and (pointer: coarse) {
+  /* 在纯触摸设备上，:active 会提供点击反馈 */
+  .card:active {
+    transform: scale(1.015);
+    border-color: rgba(255, 255, 255, 0.27);
+    box-shadow: 0 7px 50px 10px rgba(0, 0, 0, 0.65);
+    filter: brightness(1.3);
+  }
+
+  .card:active::before {
+    left: 150%;
+  }
+
+  .card:active .image {
+    transform: scale(1.1);
+  }
+
+  .card:active .overlay {
+    opacity: 0.9;
+  }
+
+  .card:active .content {
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.6) 50%,
+      rgba(0, 0, 0, 0.85) 100%
+    );
+  }
+
+  .card:active .number {
+    color: rgba(102, 126, 234, 1);
+  }
+
+  .card:active .mainTitle {
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+  }
+
+  .card:active .displaySubtitle {
+    color: rgba(255, 255, 255, 0.85);
+  }
 }
 
 .imageContainer {
@@ -71,6 +204,10 @@
   transform: scale(1.1);
 }
 
+.card.active .image {
+  transform: scale(1.1);
+}
+
 .overlay {
   position: absolute;
   inset: 0;
@@ -84,6 +221,10 @@
 }
 
 .card:hover .overlay {
+  opacity: 0.9;
+}
+
+.card.active .overlay {
   opacity: 0.9;
 }
 
@@ -101,13 +242,22 @@
   );
   display: flex;
   flex-direction: column;
-  align-items: flex-start;
+  align-items:center;
   gap: 4px;
   transition: all 0.4s ease;
   z-index: 3;
 }
 
 .card:hover .content {
+  background: linear-gradient(
+    180deg,
+    rgba(0, 0, 0, 0.1) 0%,
+    rgba(0, 0, 0, 0.6) 50%,
+    rgba(0, 0, 0, 0.85) 100%
+  );
+}
+
+.card.active .content {
   background: linear-gradient(
     180deg,
     rgba(0, 0, 0, 0.1) 0%,
@@ -123,7 +273,7 @@
 }
 
 .number {
-  font-size: 20px;
+  font-size: 26px;
   font-weight: 700;
   color: #fff;
   line-height: 1;
@@ -134,9 +284,13 @@
   color: rgba(102, 126, 234, 1);
 }
 
+.card.active .number {
+  color: rgba(102, 126, 234, 1);
+}
+
 .mainTitle {
-  font-size: 24px;
-  font-weight: 700;
+  font-size: 28px;
+  font-weight: 400;
   color: #fff;
   margin: 0;
   line-height: 1.2;
@@ -148,8 +302,12 @@
   text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
 }
 
+.card.active .mainTitle {
+  text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+}
+
 .displaySubtitle {
-  font-size: 14px;
+  font-size: 16px;
   font-weight: 400;
   color: rgba(255, 255, 255, 0.7);
   margin: 0;
@@ -158,6 +316,10 @@
 }
 
 .card:hover .displaySubtitle {
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.card.active .displaySubtitle {
   color: rgba(255, 255, 255, 0.85);
 }
 
@@ -172,9 +334,52 @@
   }
 }
 
+/* 指针设备 (鼠标/触控笔) - 保留:hover效果 */
+@media (pointer: fine) {
+  .card:hover {
+    transform: scale(1.015);
+    border-color: rgba(255, 255, 255, 0.27);
+    box-shadow: 0 7px 50px 10px rgba(0, 0, 0, 0.65);
+    filter: brightness(1.3);
+  }
+
+  .card:hover::before {
+    left: 150%;
+  }
+
+  .card:hover .image {
+    transform: scale(1.1);
+  }
+
+  .card:hover .overlay {
+    opacity: 0.9;
+  }
+
+  .card:hover .content {
+    background: linear-gradient(
+      180deg,
+      rgba(0, 0, 0, 0.1) 0%,
+      rgba(0, 0, 0, 0.6) 50%,
+      rgba(0, 0, 0, 0.85) 100%
+    );
+  }
+
+  .card:hover .number {
+    color: rgba(102, 126, 234, 1);
+  }
+
+  .card:hover .mainTitle {
+    text-shadow: 0 2px 12px rgba(0, 0, 0, 0.7);
+  }
+
+  .card:hover .displaySubtitle {
+    color: rgba(255, 255, 255, 0.85);
+  }
+}
+
 @media (max-width: 768px) {
   .card {
-    aspect-ratio: 4 / 3;
+    aspect-ratio: 16 / 9;
     border-radius: 12px;
   }
 
@@ -184,15 +389,15 @@
   }
 
   .number {
-    font-size: 16px;
+    font-size: 20px;
   }
 
   .mainTitle {
-    font-size: 18px;
+    font-size: 24px;
   }
 
   .displaySubtitle {
-    font-size: 12px;
+    font-size: 14px;
   }
 }
 
