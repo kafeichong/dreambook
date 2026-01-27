@@ -1,0 +1,46 @@
+services:
+  # Nginx 反向代理 + 静态文件托管
+  nginx:
+    build:
+      context: .
+      dockerfile: nginx/Dockerfile
+    container_name: dreambook-nginx-dev
+    ports:
+      - "8080:80"
+    volumes:
+      # 挂载前端构建输出
+      - ./web/dist:/usr/share/nginx/html:ro
+      # 挂载配置文件（便于调试修改）
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+    depends_on:
+      - backend
+    networks:
+      - dreambook-network
+    restart: unless-stopped
+    environment:
+      - TZ=Asia/Shanghai
+
+  # Express 后端 API 服务
+  backend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: dreambook-backend-dev
+    ports:
+      - "8001:3000"
+    environment:
+      - NODE_ENV=development
+      - PORT=3000
+      - DEEPSEEK_API_KEY=${DEEPSEEK_API_KEY}
+      - CORS_ORIGIN=http://localhost
+      - TZ=Asia/Shanghai
+    networks:
+      - dreambook-network
+    restart: unless-stopped
+    volumes:
+      # 开发时挂载源代码便于调试
+      - ./src:/app/src:ro
+
+networks:
+  dreambook-network:
+    driver: bridge
