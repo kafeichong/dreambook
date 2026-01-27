@@ -1,1 +1,0 @@
-export { InteractiveLogo } from './InteractiveLogo'
